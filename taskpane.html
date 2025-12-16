@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Composer AI</title>
+  
+  <!-- Office.js library -->
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js" type="text/javascript"></script>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 50%, #f1f5f9 100%);
+      min-height: 100vh;
+      color: #334155;
+      line-height: 1.5;
+    }
+    
+    /* Ambient background */
+    .bg-ambient {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+    
+    .bg-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+    }
+    
+    .bg-orb-1 {
+      width: 200px;
+      height: 200px;
+      background: rgba(59, 130, 246, 0.15);
+      top: -50px;
+      right: -50px;
+    }
+    
+    .bg-orb-2 {
+      width: 150px;
+      height: 150px;
+      background: rgba(148, 163, 184, 0.2);
+      bottom: 100px;
+      left: -40px;
+    }
+    
+    /* Main container */
+    .container {
+      position: relative;
+      z-index: 1;
+      padding: 20px 16px;
+      max-width: 100%;
+    }
+    
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .header-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      border-radius: 14px;
+      margin-bottom: 10px;
+      box-shadow: 0 8px 20px -4px rgba(37, 99, 235, 0.35);
+    }
+    
+    .header-icon svg {
+      width: 22px;
+      height: 22px;
+      color: white;
+    }
+    
+    .header h1 {
+      font-size: 22px;
+      font-weight: 600;
+      color: #1e293b;
+      letter-spacing: -0.5px;
+    }
+    
+    .header p {
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 4px;
+    }
+    
+    /* Card */
+    .card {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+    }
+    
+    .card-section {
+      padding: 16px;
+    }
+    
+    .card-section + .card-section {
+      border-top: 1px solid #e2e8f0;
+    }
+    
+    /* Labels */
+    .label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 10px;
+    }
+    
+    .label svg {
+      width: 16px;
+      height: 16px;
+      color: #3b82f6;
+    }
+    
+    /* Textarea */
+    textarea {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 14px;
+      font-family: inherit;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #334155;
+      background: linear-gradient(135deg, #f8fafc 0%, #f0f7ff 100%);
+      resize: none;
+      transition: all 0.2s ease;
+    }
+    
+    textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    }
+    
+    textarea::placeholder {
+      color: #94a3b8;
+    }
+    
+    /* Collapsible section */
+    .collapsible-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      background: transparent;
+      border: none;
+      width: 100%;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    
+    .collapsible-header:hover {
+      background: rgba(248, 250, 252, 0.8);
+    }
+    
+    .collapsible-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .collapsible-title svg {
+      width: 18px;
+      height: 18px;
+      color: #3b82f6;
+    }
+    
+    .collapsible-title span {
+      font-size: 14px;
+      font-weight: 500;
+      color: #475569;
+    }
+    
+    .collapsible-title .optional {
+      font-size: 12px;
+      font-weight: 400;
+      color: #94a3b8;
+    }
+    
+    .collapsible-header .chevron {
+      width: 18px;
+      height: 18px;
+      color: #94a3b8;
+      transition: transform 0.2s ease;
+    }
+    
+    .collapsible-header.open .chevron {
+      transform: rotate(180deg);
+    }
+    
+    .collapsible-content {
+      display: none;
+      padding: 0 16px 16px;
+    }
+    
+    .collapsible-content.open {
+      display: block;
+    }
+    
+    /* Tone selector */
+    .tone-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    
+    .tone-btn {
+      position: relative;
+      padding: 12px 14px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      background: white;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s ease;
+      overflow: hidden;
+    }
+    
+    .tone-btn:hover {
+      border-color: #93c5fd;
+      background: #f0f9ff;
+    }
+    
+    .tone-btn.selected {
+      border-color: #3b82f6;
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.2);
+    }
+    
+    .tone-btn .tone-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #475569;
+    }
+    
+    .tone-btn.selected .tone-name {
+      color: #1d4ed8;
+    }
+    
+    .tone-btn .tone-desc {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+    
+    .tone-btn.selected .tone-desc {
+      color: #60a5fa;
+    }
+    
+    .tone-indicator {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #3b82f6;
+      opacity: 0;
+      transform: scale(0);
+      transition: all 0.2s ease;
+    }
+    
+    .tone-btn.selected .tone-indicator {
+      opacity: 1;
+      transform: scale(1);
+    }
+    
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 20px;
+      border: none;
+      border-radius: 14px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .btn svg {
+      width: 18px;
+      height: 18px;
+    }
+    
+    .btn-primary {
+      width: 100%;
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: white;
+      box-shadow: 0 8px 20px -4px rgba(37, 99, 235, 0.4);
+    }
+    
+    .btn-primary:hover:not(:disabled) {
+      background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+      box-shadow: 0 12px 24px -4px rgba(37, 99, 235, 0.5);
+      transform: translateY(-1px);
+    }
+    
+    .btn-primary:disabled {
+      background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+    
+    .btn-secondary {
+      background: white;
+      color: #475569;
+      border: 1.5px solid #e2e8f0;
+      padding: 10px 16px;
+      font-size: 13px;
+    }
+    
+    .btn-secondary:hover {
+      border-color: #93c5fd;
+      background: #f0f9ff;
+    }
+    
+    .btn-success {
+      background: #10b981;
+      color: white;
+      border: none;
+    }
+    
+    /* Output section */
+    .output-section {
+      background: linear-gradient(135deg, #f8fafc 0%, #f0f7ff 100%);
+    }
+    
+    .output-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    
+    .output-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #475569;
+    }
+    
+    .output-title svg {
+      width: 18px;
+      height: 18px;
+      color: #3b82f6;
+    }
+    
+    .output-content {
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      border: 1px solid #e2e8f0;
+      font-size: 14px;
+      line-height: 1.7;
+      color: #334155;
+      white-space: pre-wrap;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    
+    .btn-group .btn {
+      flex: 1;
+      padding: 12px 14px;
+      font-size: 13px;
+    }
+    
+    /* Error message */
+    .error {
+      padding: 12px 14px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 12px;
+      color: #dc2626;
+      font-size: 13px;
+      margin-top: 12px;
+    }
+    
+    /* Loading spinner */
+    .spinner {
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Status indicator */
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 10px;
+      font-size: 13px;
+      color: #15803d;
+      margin-top: 12px;
+    }
+    
+    .status svg {
+      width: 16px;
+      height: 16px;
+    }
+    
+    /* Hidden */
+    .hidden {
+      display: none !important;
+    }
+    
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+  <!-- Background ambient effects -->
+  <div class="bg-ambient">
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+  </div>
+  
+  <!-- Main container -->
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-icon">
+        <i data-lucide="mail"></i>
+      </div>
+      <h1>Email Composer</h1>
+      <p>Transform thoughts into polished emails</p>
+    </div>
+    
+    <!-- Main card -->
+    <div class="card">
+      <!-- Optional: Original email (collapsible) -->
+      <div>
+        <button class="collapsible-header" id="originalEmailToggle">
+          <div class="collapsible-title">
+            <i data-lucide="message-square"></i>
+            <span>Replying to an email?</span>
+            <span class="optional">(optional)</span>
+          </div>
+          <i data-lucide="chevron-down" class="chevron"></i>
+        </button>
+        <div class="collapsible-content" id="originalEmailContent">
+          <textarea 
+            id="originalEmail" 
+            rows="4" 
+            placeholder="Paste the email you're responding to..."
+          ></textarea>
+        </div>
+      </div>
+      
+      <!-- Raw thoughts input -->
+      <div class="card-section">
+        <label class="label">
+          <i data-lucide="sparkles"></i>
+          What do you want to say?
+        </label>
+        <textarea 
+          id="rawThoughts" 
+          rows="5" 
+          placeholder="Write your thoughts naturally... e.g., 'Need to reschedule meeting, apologize for short notice, suggest Tuesday or Wednesday'"
+        ></textarea>
+      </div>
+      
+      <!-- Tone selector -->
+      <div class="card-section">
+        <label class="label">Select your tone</label>
+        <div class="tone-grid" id="toneGrid">
+          <button class="tone-btn selected" data-tone="formal">
+            <div class="tone-indicator"></div>
+            <div class="tone-name">Formal</div>
+            <div class="tone-desc">Professional & structured</div>
+          </button>
+          <button class="tone-btn" data-tone="warm">
+            <div class="tone-indicator"></div>
+            <div class="tone-name">Warm</div>
+            <div class="tone-desc">Friendly & approachable</div>
+          </button>
+          <button class="tone-btn" data-tone="concise">
+            <div class="tone-indicator"></div>
+            <div class="tone-name">Concise</div>
+            <div class="tone-desc">Brief & to the point</div>
+          </button>
+          <button class="tone-btn" data-tone="persuasive">
+            <div class="tone-indicator"></div>
+            <div class="tone-name">Persuasive</div>
+            <div class="tone-desc">Compelling & convincing</div>
+          </button>
+          <button class="tone-btn" data-tone="apologetic">
+            <div class="tone-indicator"></div>
+            <div class="tone-name">Apologetic</div>
+            <div class="tone-desc">Sincere & understanding</div>
+          </button>
+          <button class="tone-btn" data-tone="enthusiastic">
+            <div class="tone-indicator"></div>
+            <div class="tone-name">Enthusiastic</div>
+            <div class="tone-desc">Energetic & positive</div>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Generate button -->
+      <div class="card-section">
+        <button class="btn btn-primary" id="generateBtn">
+          <i data-lucide="send"></i>
+          <span>Generate Email</span>
+        </button>
+        <div class="error hidden" id="errorMsg"></div>
+      </div>
+      
+      <!-- Output section -->
+      <div class="card-section output-section hidden" id="outputSection">
+        <div class="output-header">
+          <div class="output-title">
+            <i data-lucide="mail-check"></i>
+            Your polished email
+          </div>
+        </div>
+        <div class="output-content" id="outputContent"></div>
+        <div class="btn-group">
+          <button class="btn btn-secondary" id="copyBtn">
+            <i data-lucide="copy"></i>
+            <span>Copy</span>
+          </button>
+          <button class="btn btn-primary" id="insertBtn">
+            <i data-lucide="file-input"></i>
+            <span>Insert into Email</span>
+          </button>
+        </div>
+        <div class="status hidden" id="successStatus">
+          <i data-lucide="check-circle"></i>
+          <span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="taskpane.js"></script>
+</body>
+</html>
